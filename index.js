@@ -22,14 +22,14 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         //for all category and its item
-        const CategoryList = client.db('BoiBodol').collection('CategoryList')
-        const CategoryItems = client.db('BoiBodol').collection('CategoryItems')
+        const CategoryList = client.db('BoiBodol').collection('categoryCollection')
+        const BookCollection = client.db('BoiBodol').collection('BookCollection')
 
         //users collection added
         const usersCollection = client.db('BoiBodol').collection('usersCollection')
 
         // booking collection added 
-        const BookedCollection = client.db('BoiBodol').collection('BookedCollection')
+        const wishlistCollection = client.db('BoiBodol').collection('wishlistCollection')
 
         const DivisionCollection = client.db('BoiBodol').collection('divisions')
         const DistrictsCollection = client.db('BoiBodol').collection('districts')
@@ -39,28 +39,28 @@ async function run() {
 
 
         // booking list collection filter by email
-        app.get('/bookedList', async (req, res) => {
+        app.get('/wishlist', async (req, res) => {
             let query = {}
             if (req.query.email) {
                 query = {
                     email: req.query.email
                 }
             }
-            const result = await BookedCollection.find(query).toArray()
+            const result = await wishlistCollection.find(query).toArray()
             res.send(result)
         })
 
-        app.get('/bookedList/:id', async (req, res) => {
+        app.get('/wishlist/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: ObjectId(id) }
-            const booking = await BookedCollection.findOne(query)
+            const booking = await wishlistCollection.findOne(query)
             res.send(booking)
         })
 
 
-        app.post('/bookedList', async (req, res) => {
+        app.post('/wishlist', async (req, res) => {
             const user = req.body;
-            const result = await BookedCollection.insertOne(user)
+            const result = await wishlistCollection.insertOne(user)
             res.send(result)
         })
 
@@ -84,13 +84,73 @@ async function run() {
                     name: { $regex: name, $options: 'i' }
                 }
             }
-            const result = await CategoryItems.find(query).toArray()
+            const result = await BookCollection.find(query).toArray()
             res.send(result)
         })
 
+        /*
+        ! for fetching all books name by id 
+        */
         app.get('/products', async (req, res) => {
             const query = {}
-            const result = await CategoryItems.find(query).toArray()
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+        /* 
+        ! for fetching all books name by id  
+        */
+        app.get('/products/:category', async (req, res) => {
+            const category = req.params.category;
+            const query = { category: category }
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+        // all products and category api
+        app.get('/categorylist', async (req, res) => {
+            const query = {}
+            const result = await CategoryList.find(query).toArray()
+            res.send(result);
+        })
+
+
+
+        // /*
+        // ! for fetching filtered produdct did it in front end
+        // */
+        // app.get('/productsbytime', async (req, res) => {
+        //     const query = {}
+        //     const result = await BookCollection.find(query).sort({ dateAdded: -1 }).toArray()
+        //     res.send(result)
+        // })
+
+        // /*
+        // ! for fetching filtered by price produdct did it in front end
+        // */
+        // app.get('/productsbypricehl', async (req, res) => {
+        //     const query = {}
+        //     const result = await BookCollection.find(query).sort({ price: -1 }).toArray()
+        //     res.send(result)
+        // })
+        // /*
+        // ! for fetching filtered by price produdct did it in front end
+        // */
+        // app.get('/productsbypricelh', async (req, res) => {
+        //     const query = {}
+        //     const result = await BookCollection.find(query).sort({ price: 1 }).toArray()
+        //     res.send(result)
+        // })
+
+
+
+        /* 
+        ! show 3 books in home page  
+        */
+        app.get('/homebooks', async (req, res) => {
+            const query = {}
+            const cursor = BookCollection.find(query)
+            const result = await cursor.limit(4).toArray()
             res.send(result)
         })
 
@@ -100,13 +160,24 @@ async function run() {
             res.send(result)
         })
 
-        //for fetching division name by id
+        /* 
+        ! for fetching division name by id 
+        */
         app.get('/division/:id', async (req, res) => {
             const query = { division_id: req.params.id }
             const result = await DivisionCollection.find(query).toArray()
             res.send(result)
         })
 
+        app.get('/districts', async (req, res) => {
+            const query = {}
+            const result = await DistrictsCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        /*
+        ! for fetching districts name by id 
+        */
         app.get('/districts/:id', async (req, res) => {
             const query = { division_id: req.params.id }
             const result = await DistrictsCollection.find(query).toArray()
@@ -120,6 +191,17 @@ async function run() {
             res.send(result)
         })
 
+        /*
+        ! for fetching upazilas by id 
+        */
+        app.get('/upazilas', async (req, res) => {
+            const query = {}
+            const result = await UpazilasCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+
         app.get('/upazilas/:id', async (req, res) => {
             const query = { district_id: req.params.id }
             const result = await UpazilasCollection.find(query).toArray()
@@ -131,66 +213,9 @@ async function run() {
 
 
 
-        // all products and category api
-        app.get('/categorylist', async (req, res) => {
-            const query = {}
-            const result = await CategoryList.find(query).toArray()
-            res.send(result);
-        })
-
-        app.get('/category/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { categoryId: id }
-            const result = await CategoryItems.find(query).toArray()
-            res.send(result)
-        })
-
-        //
-
-
-
-        //reported item api
-        app.get('/reportedProducts', async (req, res) => {
-            const query = { isReported: true }
-            const result = await CategoryItems.find(query).toArray()
-            res.send(result)
-        })
-
-
-
-        //report product by id
-        app.put("/reportedProducts/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: ObjectId(id) };
-            const option = { upsert: true };
-            const updatedDoc = {
-                $set: {
-                    isReported: true
-                }
-            }
-            const result = await CategoryItems.updateOne(filter, updatedDoc, option);
-            res.send(result);
-        })
-
-        // reported item deleted from reports 
-        app.patch("/reportedProducts/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: ObjectId(id) };
-            const updatedDoc = {
-                $set: {
-                    isReported: false
-                }
-            }
-            const result = await CategoryItems.updateOne(filter, updatedDoc);
-            res.send(result);
-        })
-
-
-
-
-
-
-        // get user info
+        /* 
+        ! get user info 
+        */
         app.get('/users', async (req, res) => {
             let query = {}
             if (req.query.email) {
@@ -202,7 +227,9 @@ async function run() {
             res.send(result)
         })
 
-        // seller my products api
+        /*
+        ! individual seller my products api 
+        */
         app.get('/myproducts', async (req, res) => {
             let query = {}
             if (req.query.email) {
@@ -210,69 +237,70 @@ async function run() {
                     email: req.query.email
                 }
             }
-            const result = await CategoryItems.find(query).toArray()
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+        /*
+        ! get product by id
+        */
+        app.get('/myproducts/:id', async (req, res) => {
+            let query = { _id: ObjectId(req.params.id) }
+            const result = await BookCollection.find(query).toArray()
             res.send(result)
         })
 
         //verify user api
-        app.put('/seller/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: ObjectId(id) }
-            const options = { upsert: true }
-            const updatedDoc = {
-                $set: {
-                    verified: true
-                }
-            }
-            const result = await usersCollection.updateOne(filter, updatedDoc, options)
-            res.send(result)
-        })
+        // app.put('/seller/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const filter = { _id: ObjectId(id) }
+        //     const options = { upsert: true }
+        //     const updatedDoc = {
+        //         $set: {
+        //             verified: true
+        //         }
+        //     }
+        //     const result = await usersCollection.updateOne(filter, updatedDoc, options)
+        //     res.send(result)
+        // })
 
 
 
-        //Advertise Handle API
+        /* 
+        ! Sold Handle API 
+        */
         app.put('/myproducts/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) }
             const options = { upsert: true }
             const updatedDoc = {
                 $set: {
-                    Advertise: true,
-                    verified: true
+                    sold: true
                 }
             }
-            const result = await CategoryItems.updateOne(filter, updatedDoc, options)
-            res.send(result)
-        })
-
-
-        //Available handle api
-        app.patch('/available/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: ObjectId(id) }
-            const updatedDoc = {
-                $set: {
-                    Available: false
-                }
-            }
-            const result = await CategoryItems.updateOne(filter, updatedDoc)
+            const result = await BookCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
         })
 
 
 
-        // delete product api 
+
+        /* 
+        ! delete product api  
+        */
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
-            const result = await CategoryItems.deleteOne(query)
+            const result = await BookCollection.deleteOne(query)
             console.log(result)
             res.send(result)
         })
 
 
-
-        // delete user api 
+        /* 
+            ! delete user api for admin 
+        */
         app.delete('/users/:id', async (req, res) => {
             const id = req.params.id
             let query = { _id: ObjectId(id) }
@@ -281,14 +309,18 @@ async function run() {
         })
 
 
-        // add a product api 
-        app.post('/categoryitems', async (req, res) => {
+        /* 
+        ! add a book api  
+        */
+        app.post('/books', async (req, res) => {
             const user = req.body;
-            const result = await CategoryItems.insertOne(user)
+            const result = await BookCollection.insertOne(user)
             res.send(result)
         })
 
-        // add a user api 
+        /* 
+        ! add a user api  
+        */
         app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user)

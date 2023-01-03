@@ -77,7 +77,6 @@ async function run() {
 
         app.get('/search', async (req, res) => {
             const name = req.query.name;
-            console.log(name);
             let query = {}
             if (req.query.name) {
                 query = {
@@ -89,58 +88,51 @@ async function run() {
         })
 
         /*
-        ! for fetching all books name by id 
+        ! for fetching all books name 
         */
         app.get('/products', async (req, res) => {
             const query = {}
             const result = await BookCollection.find(query).toArray()
             res.send(result)
         })
-        /* 
-        ! for fetching all books name by id  
+
+        /*
+        ! for fetching all books name 
         */
-        app.get('/products/:category', async (req, res) => {
-            const category = req.params.category;
-            const query = { category: category }
+        app.get('/trending', async (req, res) => {
+            const query = { trending: true }
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        /*
+        ! for fetching all books name by id 
+        */
+        app.get('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+        /* 
+        ! for fetching category books name by id  
+        */
+        app.get('/category/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { categoryId: id }
             const result = await BookCollection.find(query).toArray()
             res.send(result)
         })
 
 
         // all products and category api
-        app.get('/categorylist', async (req, res) => {
+        app.get('/catagories', async (req, res) => {
             const query = {}
             const result = await CategoryList.find(query).toArray()
             res.send(result);
         })
 
 
-
-        // /*
-        // ! for fetching filtered produdct did it in front end
-        // */
-        // app.get('/productsbytime', async (req, res) => {
-        //     const query = {}
-        //     const result = await BookCollection.find(query).sort({ dateAdded: -1 }).toArray()
-        //     res.send(result)
-        // })
-
-        // /*
-        // ! for fetching filtered by price produdct did it in front end
-        // */
-        // app.get('/productsbypricehl', async (req, res) => {
-        //     const query = {}
-        //     const result = await BookCollection.find(query).sort({ price: -1 }).toArray()
-        //     res.send(result)
-        // })
-        // /*
-        // ! for fetching filtered by price produdct did it in front end
-        // */
-        // app.get('/productsbypricelh', async (req, res) => {
-        //     const query = {}
-        //     const result = await BookCollection.find(query).sort({ price: 1 }).toArray()
-        //     res.send(result)
-        // })
 
 
 
@@ -293,7 +285,6 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await BookCollection.deleteOne(query)
-            console.log(result)
             res.send(result)
         })
 

@@ -233,6 +233,12 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/allproducts', async (req, res) => {
+            let query = {}
+            const result = await BookCollection.find(query).toArray()
+            res.send(result)
+        })
+
 
         /*
         ! get product by id
